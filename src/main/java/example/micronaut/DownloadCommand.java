@@ -6,7 +6,6 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.HttpClient;
-import io.micronaut.reactor.http.client.ReactorStreamingHttpClient;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import java.io.File;
@@ -16,7 +15,7 @@ import java.net.URL;
 
 @Command(name = "downloadfile", description = "...",
         mixinStandardHelpOptions = true)
-public class DataStreamCommand implements Runnable {
+public class DownloadCommand implements Runnable {
 
     @Option(names = {"-v", "--verbose"}, description = "Whether you want a verbose output", defaultValue = StringUtils.TRUE)
     boolean verbose;
@@ -25,14 +24,12 @@ public class DataStreamCommand implements Runnable {
     String url;
 
     public static void main(String[] args) throws Exception {
-        PicocliRunner.run(DataStreamCommand.class, args);
+        PicocliRunner.run(DownloadCommand.class, args);
     }
 
     public void run() {
         try {
-            if (verbose) {
-                System.out.println("Downloading " + url);
-            }
+
             URL baseURL = new URL(url);
             HttpRequest<?> request = HttpRequest.GET(url);
 
@@ -41,10 +38,17 @@ public class DataStreamCommand implements Runnable {
                 System.out.println("Doing nothing. File already exists");
 
             } else {
+                if (verbose) {
+                    System.out.println("Downloading " + url);
+                }
                 outputFile.createNewFile();
                 try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
                     outputStream.write(downloadWithHttpClient(baseURL, request));
                 }
+                if (verbose) {
+                    System.out.println("Downloaded " + outputFile.getAbsolutePath());
+                }
+
             }
 
         } catch (IOException e) {
